@@ -9,7 +9,7 @@ import { geoAitoff } from 'd3-geo-projection';
 
 import { starData, lineData, constData, milkyData } from '@/data/starData';
 
-const colorPalette: {[key: string]: string} = {
+const colorPalette: { [key: string]: string } = {
   黃: '#FED049',
   紅: '#DC3535',
   黑: '#69687d',
@@ -19,7 +19,7 @@ const colorPalette: {[key: string]: string} = {
   level3: '#F15A59',
 };
 
-const sizePalette: {[key: string]: string} = {
+const sizePalette: { [key: string]: string } = {
   level1: '15',
   level2: '18',
   level3: '22',
@@ -46,14 +46,12 @@ const Skymap = () => {
       .attr('id', 'sphere')
       .attr('d', pathGenerator({ type: 'Sphere' }));
     svg.append('use').attr('class', 'stroke').attr('xlink:href', '#sphere');
-    svg.append('path').datum(geoGraticule10()).attr('class', 'stroke').attr('d', pathGenerator);
-
-    console.log(milkyData);
+    svg.append('path').datum(geoGraticule10()).attr('class', 'stroke').attr('d', pathGenerator).exit().remove();
 
     // @ts-ignore
-    svg.selectAll('.milkyWay').data(milkyData).enter().append('path').attr('d', pathGenerator).attr('class', 'milkyWay');
+    svg.selectAll('.milkyWay').data(milkyData).enter().append('path').attr('d', pathGenerator).attr('class', 'milkyWay').exit().remove();
     // @ts-ignore
-    svg.selectAll('.starline').data(lineData).enter().append('path').attr('d', pathGenerator).attr('class', 'starLine');
+    svg.selectAll('.starline').data(lineData).enter().append('path').attr('d', pathGenerator).attr('class', 'starLine').exit().remove();
 
     svg
       .selectAll('g')
@@ -73,7 +71,9 @@ const Skymap = () => {
       })
       .style('fill', (d) => {
         return colorPalette[d.properties.color];
-      });
+      })
+      .exit()
+      .remove();
 
     svg
       .selectAll('g')
@@ -88,7 +88,9 @@ const Skymap = () => {
       .attr('y', (d) => {
         return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
       })
-      .attr('class', 'starText');
+      .attr('class', 'starText')
+      .exit()
+      .remove();
 
     svg
       .selectAll('.constellation')
@@ -118,7 +120,9 @@ const Skymap = () => {
       .style('font-size', (d) => {
         return sizePalette['level' + d.properties.color];
       })
-      .attr('class', 'constellation');
+      .attr('class', 'constellation')
+      .exit()
+      .remove();
 
     // Update Coorinates
     const updateCord = () => {
@@ -165,20 +169,13 @@ const Skymap = () => {
 
     // Zoom Event
     const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
+      console.log(event.transform.k);
       if (event.transform.k > 5) {
         // zoom too close
         event.transform.k = 5;
       } else if (event.transform.k < 0.4) {
         // zoom too far
         event.transform.k = 0.4;
-      } else if (event.transform.k < 1 && showStarName) {
-        // disable words
-        setShowStarName(false);
-        svg.selectAll('.starText').data(starData).attr('display', 'none');
-      } else if (showStarName) {
-        // show words
-        setShowStarName(true);
-        svg.selectAll('.starText').data(starData).attr('display', 'block');
       }
       projection.scale(scale * event.transform.k);
       updateCord();
