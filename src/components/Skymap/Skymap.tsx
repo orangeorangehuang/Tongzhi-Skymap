@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { drag, zoom } from 'd3';
 import { select } from 'd3-selection';
 import { geoPath, geoGraticule10 } from 'd3-geo';
@@ -26,7 +26,6 @@ const sizePalette: { [key: string]: string } = {
 };
 
 const Skymap = () => {
-  const [showStarName, setShowStarName] = useState(true);
   const svgRef = useRef(null);
   const rotate = [0, -90];
   const scale = 650;
