@@ -3,42 +3,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { drag, zoom } from 'd3';
 import { select } from 'd3-selection';
-import { json } from 'd3-fetch';
 import { geoPath, geoGraticule10 } from 'd3-geo';
 // @ts-ignore
 import { geoAitoff } from 'd3-geo-projection';
 
-interface StarData {
-  geometry: {
-    coordinates: [number, number];
-  };
-  properties: {
-    color: string;
-    id: string;
-    display_name: string;
-  };
-}
-interface ConstData {
-  geometry: {
-    coordinates: [number, number];
-  };
-  properties: {
-    color: number;
-    id: string;
-    display_name: string;
-    name: string;
-  };
-}
+import { starData, lineData, constData, milkyData } from '@/data/starData';
 
-interface ColorPalette {
-  [key: string]: string;
-}
-
-interface sizePalette {
-  [key: string]: string;
-}
-
-const colorPalette: ColorPalette = {
+const colorPalette: {[key: string]: string} = {
   黃: '#FED049',
   紅: '#DC3535',
   黑: '#69687d',
@@ -47,7 +18,8 @@ const colorPalette: ColorPalette = {
   level2: '#FFDEB4',
   level3: '#F15A59',
 };
-const sizePalette: sizePalette = {
+
+const sizePalette: {[key: string]: string} = {
   level1: '15',
   level2: '18',
   level3: '22',
@@ -56,10 +28,6 @@ const sizePalette: sizePalette = {
 const Skymap = () => {
   const [showStarName, setShowStarName] = useState(true);
   const svgRef = useRef(null);
-  const milkyDataRef = useRef([]);
-  const starDataRef = useRef([]);
-  const lineDataRef = useRef([]);
-  const constDataRef = useRef([]);
   const rotate = [0, -90];
   const scale = 650;
 
@@ -80,87 +48,77 @@ const Skymap = () => {
     svg.append('use').attr('class', 'stroke').attr('xlink:href', '#sphere');
     svg.append('path').datum(geoGraticule10()).attr('class', 'stroke').attr('d', pathGenerator);
 
-    // Fetch Data
-    const fetchData = async () => {
-      let fetchMilkyData: any = await json('https://raw.githubusercontent.com/orangeorangehuang/Tongzhi-Skymap/main/data/milky.geojson');
-      milkyDataRef.current = fetchMilkyData?.features;
-      let fetchStarData: any = await json('https://raw.githubusercontent.com/orangeorangehuang/Tongzhi-Skymap/main/data/star.geojson');
-      starDataRef.current = fetchStarData?.features;
-      let fetchLineData: any = await json('https://raw.githubusercontent.com/orangeorangehuang/Tongzhi-Skymap/main/data/line.geojson');
-      lineDataRef.current = fetchLineData?.features;
-      let fetchConstData: any = await json('https://raw.githubusercontent.com/orangeorangehuang/Tongzhi-Skymap/main/data/constellation.geojson');
-      constDataRef.current = fetchConstData?.features;
+    console.log(milkyData);
 
-      svg.selectAll('.milkyWay').data(milkyDataRef.current).enter().append('path').attr('d', pathGenerator).attr('class', 'milkyWay');
+    // @ts-ignore
+    svg.selectAll('.milkyWay').data(milkyData).enter().append('path').attr('d', pathGenerator).attr('class', 'milkyWay');
+    // @ts-ignore
+    svg.selectAll('.starline').data(lineData).enter().append('path').attr('d', pathGenerator).attr('class', 'starLine');
 
-      svg.selectAll('.starline').data(lineDataRef.current).enter().append('path').attr('d', pathGenerator).attr('class', 'starLine');
+    svg
+      .selectAll('g')
+      .data(starData)
+      .enter()
+      .append('g')
+      .append('circle')
+      .attr('cx', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
+      })
+      .attr('cy', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
+      })
+      .attr('r', 2)
+      .attr('id', (d) => {
+        return d.properties.id;
+      })
+      .style('fill', (d) => {
+        return colorPalette[d.properties.color];
+      });
 
-      svg
-        .selectAll('g')
-        .data(starDataRef.current)
-        .enter()
-        .append('g')
-        .append('circle')
-        .attr('cx', (d: StarData) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
-        })
-        .attr('cy', (d: StarData) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
-        })
-        .attr('r', 2)
-        .attr('id', (d: StarData) => {
-          return d.properties.id;
-        })
-        .style('fill', (d: StarData) => {
-          return colorPalette[d.properties.color];
-        });
+    svg
+      .selectAll('g')
+      .data(starData)
+      .append('text')
+      .text((d) => {
+        return d.properties.display_name;
+      })
+      .attr('x', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
+      })
+      .attr('y', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
+      })
+      .attr('class', 'starText');
 
-      svg
-        .selectAll('g')
-        .data(starDataRef.current)
-        .append('text')
-        .text((d: StarData) => {
-          return d.properties.display_name;
-        })
-        .attr('x', (d: StarData) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
-        })
-        .attr('y', (d: StarData) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
-        })
-        .attr('class', 'starText');
-
-      svg
-        .selectAll('.constellation')
-        .data(constDataRef.current)
-        .enter()
-        .append('text')
-        .text((d: ConstData) => {
-          return d.properties.display_name;
-        })
-        .attr('d', pathGenerator)
-        .attr('x', (d: ConstData) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
-        })
-        .attr('y', (d: ConstData) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
-        })
-        .attr('id', (d: ConstData) => {
-          return d.properties.id;
-        })
-        .attr('name', (d: ConstData) => {
-          return d.properties.name;
-        })
-        .style('fill', (d: ConstData) => {
-          return colorPalette['level' + d.properties.color];
-        })
-        .style('font-size', (d: ConstData) => {
-          return sizePalette['level' + d.properties.color];
-        })
-        .attr('class', 'constellation');
-    };
-
-    fetchData();
+    svg
+      .selectAll('.constellation')
+      .data(constData)
+      .enter()
+      .append('text')
+      .text((d) => {
+        return d.properties.display_name;
+      })
+      // @ts-ignore
+      .attr('d', pathGenerator)
+      .attr('x', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
+      })
+      .attr('y', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
+      })
+      .attr('id', (d) => {
+        return d.properties.id;
+      })
+      .attr('name', (d) => {
+        return d.properties.name;
+      })
+      .style('fill', (d) => {
+        return colorPalette['level' + d.properties.color];
+      })
+      .style('font-size', (d) => {
+        return sizePalette['level' + d.properties.color];
+      })
+      .attr('class', 'constellation');
 
     // Update Coorinates
     const updateCord = () => {
@@ -169,29 +127,29 @@ const Skymap = () => {
       });
       svg
         .selectAll('circle')
-        .data(starDataRef.current)
-        .attr('cx', (d: StarData) => {
+        .data(starData)
+        .attr('cx', (d) => {
           return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
         })
-        .attr('cy', (d: StarData) => {
+        .attr('cy', (d) => {
           return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
         });
       svg
         .selectAll('.starText')
-        .data(starDataRef.current)
-        .attr('x', (d: StarData) => {
+        .data(starData)
+        .attr('x', (d) => {
           return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
         })
-        .attr('y', (d: StarData) => {
+        .attr('y', (d) => {
           return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
         });
       svg
         .selectAll('.constellation')
-        .data(constDataRef.current)
-        .attr('x', (d: ConstData) => {
+        .data(constData)
+        .attr('x', (d) => {
           return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
         })
-        .attr('y', (d: ConstData) => {
+        .attr('y', (d) => {
           return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
         });
     };
@@ -216,11 +174,11 @@ const Skymap = () => {
       } else if (event.transform.k < 1 && showStarName) {
         // disable words
         setShowStarName(false);
-        svg.selectAll('.starText').data(starDataRef.current).attr('display', 'none');
+        svg.selectAll('.starText').data(starData).attr('display', 'none');
       } else if (showStarName) {
         // show words
         setShowStarName(true);
-        svg.selectAll('.starText').data(starDataRef.current).attr('display', 'block');
+        svg.selectAll('.starText').data(starData).attr('display', 'block');
       }
       projection.scale(scale * event.transform.k);
       updateCord();
@@ -228,7 +186,7 @@ const Skymap = () => {
 
     svg.call(dragBehavior);
     svg.call(zoomBehavior);
-  }, []);
+  });
 
   return (
     <>
