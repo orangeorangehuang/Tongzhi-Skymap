@@ -9,8 +9,6 @@ import { geoAitoff } from 'd3-geo-projection';
 
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
-import StarIcon from '@mui/icons-material/Star';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from 'next/navigation';
@@ -105,13 +103,13 @@ const Skymap = () => {
           setIsStar(true);
           setStarMetaData(data.star);
           router.push(`/?type=star&index=${data.star.star_id}`);
-          window.scrollTo(0, 0)
+          window.scrollTo(0, 0);
         } else if (data.const) {
           setSearched(true);
           setIsStar(false);
           setConstMetaData(data.const);
           router.push(`/?type=const&index=${data.const.const_id}`);
-          window.scrollTo(0, 0)
+          window.scrollTo(0, 0);
         } else {
           router.push(`/`);
           setSearched(false);
@@ -465,8 +463,8 @@ const Skymap = () => {
         <div className='px-5 mt-6'>
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
-            <div className='w-[4.25rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-2 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
-              <StarIcon className='h-[1rem] -translate-y-[0.08rem]' /> 星名
+            <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
+              星名
             </div>
           </div>
 
@@ -513,8 +511,8 @@ const Skymap = () => {
       <div className={`absolute top-[4rem] left-4 w-[26rem] h-[49rem] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'}`} ref={constRef}>
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
-          <div className='w-[4.25rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-2 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
-            <AutoAwesomeIcon className='h-[1rem] -translate-y-[0.08rem]' /> 星官
+          <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
+            星官
           </div>
         </div>
         <div className='h-[37rem] px-5 mt-5'>
