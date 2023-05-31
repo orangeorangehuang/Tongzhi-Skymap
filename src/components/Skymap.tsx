@@ -459,7 +459,7 @@ const Skymap = () => {
       </div>
 
       {/* Display Area: Star */}
-      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[49rem] overflow-y-scroll ${searched && isStar ? 'block' : 'hidden'}`} ref={starRef}>
+      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && isStar ? 'block' : 'hidden'}`} ref={starRef}>
         <div className='px-5 mt-6'>
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
@@ -508,7 +508,7 @@ const Skymap = () => {
       </div>
 
       {/* Display Area: Constellation */}
-      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[49rem] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'}`} ref={constRef}>
+      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'}`} ref={constRef}>
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
           <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
