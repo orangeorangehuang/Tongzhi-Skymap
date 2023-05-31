@@ -466,7 +466,7 @@ const Skymap = () => {
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
             <div className='w-[4rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] px-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
-              <StarIcon className='text-lg -translate-y-[0.08rem]' /> 星名
+              <StarIcon className='text-base -translate-y-[0.08rem]' /> 星名
             </div>
           </div>
 
@@ -514,7 +514,7 @@ const Skymap = () => {
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
           <div className='w-[4rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] px-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
-            <AutoAwesomeIcon className='text-lg -translate-y-[0.08rem]' /> 星官
+            <AutoAwesomeIcon className='text-base -translate-y-[0.08rem]' /> 星官
           </div>
         </div>
         <div className='h-[37rem] px-5 mt-5'>
