@@ -296,7 +296,7 @@ const Skymap = () => {
 
     // Zoom Event
     const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
-      if (scale * event.transform.k < 300) projection.scale(300);
+      if (scale_temp * event.transform.k < 300) projection.scale(300);
       else projection.scale(scale_temp * event.transform.k);
       updateCord();
     });
