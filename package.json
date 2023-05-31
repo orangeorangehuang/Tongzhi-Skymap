@@ -1,5 +1,5 @@
 {
-  "name": "next-ts-system",
+  "name": "tongzhi-skymap",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,11 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
     "@fontsource/noto-sans-tc": "^4.5.12",
     "@fontsource/noto-serif-tc": "^4.5.12",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.2",
     "@types/d3": "^7.4.0",
     "@types/d3-geo": "^3.0.3",
     "@types/d3-selection": "^3.0.5",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "20.1.5",
     "@types/react": "18.2.6",
     "@types/react-dom": "18.2.4",
@@ -24,7 +29,10 @@
     "d3-selection": "^3.0.0",
     "eslint": "8.40.0",
     "eslint-config-next": "13.4.2",
-    "next": "13.4.2",
+    "html-react-parser": "^3.0.16",
+    "mongodb": "^5.5.0",
+    "mongoose": "^7.2.1",
+    "next": "^13.4.4",
     "postcss": "8.4.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",

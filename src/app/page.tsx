@@ -1,7 +1,7 @@
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
+import Skymap from '@/components/Skymap';
 
-export default page
+const page = () => {
+  return <Skymap />;
+};
+
+export default page;

@@ -3,8 +3,8 @@ import '@fontsource/noto-sans-tc';
 import '@fontsource/noto-serif-tc';
 
 export const metadata = {
-  title: '首頁｜通志分析系統',
-  description: '通志脈絡分析系統。（英文待補）',
+  title: '通志天文略星空圖',
+  description: 'Tongzhi Skymap',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
