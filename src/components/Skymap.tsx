@@ -305,6 +305,8 @@ const Skymap = () => {
   }, [rotate]);
 
   useEffect(() => {
+    fetch(`/api/stars`);
+
     const handleStarNameClick = (e: any) => {
       e.preventDefault();
       router.push(`/?display=${e.target.id}`);
