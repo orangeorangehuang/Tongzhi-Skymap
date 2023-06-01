@@ -1,6 +1,11 @@
 export const constData = [
   {
     "type": "Feature",
+    "geometry": { "type": "Point", "coordinates": [-24.26066667, 86.75033333] },
+    "properties": { "id": "const-0000", "name": "北極紫微宮", "display_name": "北極紫微宮", "color": 3 }
+  },
+  {
+    "type": "Feature",
     "geometry": { "type": "Point", "coordinates": [-22.2595, 80.4805] },
     "properties": { "id": "const-0001", "name": "北極", "display_name": "北極", "color": 1 }
   },
@@ -206,8 +211,8 @@ export const constData = [
   },
   {
     "type": "Feature",
-    "geometry": { "type": "Point", "coordinates": [-24.26066667, 86.75033333] },
-    "properties": { "id": "const-0000", "name": "北極紫微宮", "display_name": "北極紫微宮", "color": 3 }
+    "geometry": { "type": "Point", "coordinates": [-2.651, 11.816] },
+    "properties": { "id": "const-0042", "name": "太微宮", "display_name": "太微宮", "color": 3 }
   },
   {
     "type": "Feature",
@@ -323,11 +328,6 @@ export const constData = [
     "type": "Feature",
     "geometry": { "type": "Point", "coordinates": [-1.325, 1.216] },
     "properties": { "id": "const-0065", "name": "端門", "display_name": "端門", "color": 1 }
-  },
-  {
-    "type": "Feature",
-    "geometry": { "type": "Point", "coordinates": [-2.651, 11.816] },
-    "properties": { "id": "const-0042", "name": "太微宮", "display_name": "太微宮", "color": 3 }
   },
   {
     "type": "Feature",
@@ -35161,8 +35161,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [130.0, 65.65] },
     "properties": {
       "id": "star-0076",
-      "name": "上丞（紫微西藩）",
-      "display_name": "上丞",
+      "name": "少丞（紫微西藩）",
+      "display_name": "少丞",
       "prop_name": "BK Cam",
       "color": "白",
       "const_id": "紫微西藩",
@@ -35265,8 +35265,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [168.06, 74.85] },
     "properties": {
       "id": "star-0084",
-      "name": "少丞（紫微東藩）",
-      "display_name": "少丞",
+      "name": "上丞（紫微東藩）",
+      "display_name": "上丞",
       "prop_name": "23 Cas",
       "color": "白",
       "const_id": "紫微東藩",
@@ -36232,8 +36232,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [2.74, 14.57] },
     "properties": {
       "id": "star-0164",
-      "name": "五帝座一",
-      "display_name": "",
+      "name": "中黃帝",
+      "display_name": "黃帝",
       "prop_name": "β Leo",
       "color": "白",
       "const_id": "五帝座",
@@ -36245,8 +36245,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [2.69, 16.24] },
     "properties": {
       "id": "star-0165",
-      "name": "五帝座二",
-      "display_name": "",
+      "name": "北黑帝",
+      "display_name": "黑帝",
       "prop_name": "HIP 57646",
       "color": "白",
       "const_id": "五帝座",
@@ -36258,8 +36258,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [3.7, 14.26] },
     "properties": {
       "id": "star-0166",
-      "name": "五帝座三",
-      "display_name": "",
+      "name": "西白帝",
+      "display_name": "白帝",
       "prop_name": "HIP 57320",
       "color": "白",
       "const_id": "五帝座",
@@ -36271,8 +36271,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [1.08, 15.65] },
     "properties": {
       "id": "star-0167",
-      "name": "五帝座四",
-      "display_name": "",
+      "name": "東蒼帝",
+      "display_name": "蒼帝",
       "prop_name": "95 Leo",
       "color": "白",
       "const_id": "五帝座",
@@ -36284,8 +36284,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [2.27, 12.28] },
     "properties": {
       "id": "star-0168",
-      "name": "五帝座五",
-      "display_name": "",
+      "name": "南赤帝",
+      "display_name": "赤帝",
       "prop_name": "HIP 57779",
       "color": "白",
       "const_id": "五帝座",
@@ -36921,8 +36921,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [45.2, 48.04] },
     "properties": {
       "id": "star-0220",
-      "name": "上台一",
-      "display_name": "",
+      "name": "天子星（三台）",
+      "display_name": "天子",
       "prop_name": "ι UMa",
       "color": "白",
       "const_id": "上台",
@@ -36934,8 +36934,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [44.09, 47.16] },
     "properties": {
       "id": "star-0221",
-      "name": "上台二",
-      "display_name": "",
+      "name": "女主（三台）",
+      "display_name": "女主",
       "prop_name": "κ UMa",
       "color": "白",
       "const_id": "上台",
@@ -36947,8 +36947,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [25.73, 42.91] },
     "properties": {
       "id": "star-0222",
-      "name": "中台一",
-      "display_name": "",
+      "name": "諸侯三公（三台）",
+      "display_name": "諸侯三公",
       "prop_name": "λ Uma",
       "color": "白",
       "const_id": "中台",
@@ -36960,8 +36960,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [24.42, 41.5] },
     "properties": {
       "id": "star-0223",
-      "name": "中台二",
-      "display_name": "",
+      "name": "卿大夫（三台）",
+      "display_name": "卿大夫",
       "prop_name": "μ UMa",
       "color": "白",
       "const_id": "中台",
@@ -36973,8 +36973,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [10.38, 33.09] },
     "properties": {
       "id": "star-0224",
-      "name": "下台一",
-      "display_name": "",
+      "name": "士（三台）",
+      "display_name": "士",
       "prop_name": "ν UMa",
       "color": "白",
       "const_id": "下台",
@@ -36986,8 +36986,8 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [10.46, 31.53] },
     "properties": {
       "id": "star-0225",
-      "name": "下台二",
-      "display_name": "",
+      "name": "庶人（三台）",
+      "display_name": "庶人",
       "prop_name": "ξ UMa",
       "color": "白",
       "const_id": "下台",
