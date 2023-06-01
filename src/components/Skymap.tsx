@@ -19,6 +19,9 @@ const Skymap = () => {
   const svgRef = useRef(null);
   const searchParams = useSearchParams();
   const scale = 650;
+  const month = (new Date().getMonth() + 1) % 12;
+  const date = new Date().getDate();
+  const today_id = (month * 30 + date) % starOption.length;
 
   const [rotate, setRotate] = useState([0, -90]);
   const [searched, setSearched] = useState(false);
@@ -28,7 +31,7 @@ const Skymap = () => {
   const [constMetaData, setConstMetaData] = useState<any>({});
   const [paragraphs, setParagraphs] = useState({ type: '', text: '' });
   const [mainParagraphs, setMainParagraphs] = useState([{ type: '', text: '' }]);
-  
+
   useEffect(() => {
     let searchType = searchParams.get('type');
     let searchIndex = searchParams.get('index');
@@ -410,20 +413,20 @@ const Skymap = () => {
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
             <div className='flex-auto'>
-              {(new Date().getMonth() + 1) % 12}/{new Date().getDate()}
+              {month}/{date}
             </div>
           </div>
           <div className='flex text-sm'>
-            <div className='w-[17.5rem] mt-[1rem] ml-[0.5rem] text-slate-600'>{starOption[0].display_name}</div>
+            <div className='w-[17.5rem] mt-[1rem] ml-[0.5rem] text-slate-600'>{starOption[today_id].display_name}</div>
             <div
               className='mt-[0.8rem] ml-[0.5rem] px-[1rem] py-[0.3rem] bg-slate-300 rounded-lg hover:cursor-pointer hover:bg-slate-200'
-              id={starOption[0].id}
+              id={starOption[today_id].id}
               onClick={handleDailyStarClick}
             >
               查看
             </div>
           </div>
-          <div className='w-[20rem] mt-[0.5rem] ml-[0.5rem] text-sm text-slate-600'>位於 {starOption[0].field}</div>
+          <div className='w-[20rem] mt-[0.5rem] ml-[0.5rem] text-sm text-slate-600'>位於 {starOption[today_id].field}</div>
         </div>
       </div>
 
