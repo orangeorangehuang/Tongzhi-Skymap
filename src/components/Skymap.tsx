@@ -6,50 +6,43 @@ import { select } from 'd3-selection';
 import { geoPath, geoGraticule10 } from 'd3-geo';
 // @ts-ignore
 import { geoAitoff } from 'd3-geo-projection';
-
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import parse from 'html-react-parser';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 
-import { useSearchParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
 import { starData, lineData, constData, milkyData, starOption, constOption, colorPalette, sizePalette } from '@/data/starData';
-import { StarMetaData, ConstMetaData, Paragraph } from '@/types/starType';
-import parse from 'html-react-parser';
 
 const Skymap = () => {
   const router = useRouter();
   const svgRef = useRef(null);
-  const starRef = useRef(null);
-  const constRef = useRef(null);
+  const searchParams = useSearchParams();
+  const scale = 650;
 
   const [rotate, setRotate] = useState([0, -90]);
   const [searched, setSearched] = useState(false);
   const [isStar, setIsStar] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  // @ts-ignore
-  const [starMetaData, setStarMetaData] = useState<StarMetaData>({});
-  // @ts-ignore
-  const [constMetaData, setConstMetaData] = useState<ConstMetaData>({});
-  // @ts-ignore
+  const [starMetaData, setStarMetaData] = useState<any>({});
+  const [constMetaData, setConstMetaData] = useState<any>({});
   const [paragraphs, setParagraphs] = useState({ type: '', text: '' });
   const [mainParagraphs, setMainParagraphs] = useState([{ type: '', text: '' }]);
-  const [filename, setFilename] = useState('');
-  const searchParams = useSearchParams();
-  let search_type = searchParams.get('type');
-  let search_index = searchParams.get('index');
-  let scale = 650;
-
+  
   useEffect(() => {
-    if (search_type === 'star' && search_index) {
+    let searchType = searchParams.get('type');
+    let searchIndex = searchParams.get('index');
+
+    if (searchType === 'star' && searchIndex) {
       setIsStar(true);
-      fetch(`/api/star/${search_index}`)
+      fetch(`/api/star/${searchIndex}`)
         .then((res) => res.json())
         .then((data) => {
           setStarMetaData(data.star);
         });
-    } else if (search_type === 'const' && search_index) {
+    } else if (searchType === 'const' && searchIndex) {
       setIsStar(false);
-      fetch(`/api/const/${search_index}`)
+      fetch(`/api/const/${searchIndex}`)
         .then((res) => res.json())
         .then((data) => {
           setConstMetaData(data.const);
@@ -57,18 +50,17 @@ const Skymap = () => {
     } else {
       setSearched(false);
       setSearchValue('');
+      setRotate([0, -90]);
     }
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (starMetaData.lon) {
       fetch(`/api/document/${starMetaData.filename}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.document.paragraph[0].text !== paragraphs.text) {
-            setParagraphs(data.document.paragraph[0]);
-            setMainParagraphs(data.document.paragraph.slice(1));
-          }
+          setParagraphs(data.document.paragraph[0]);
+          setMainParagraphs(data.document.paragraph.slice(1));
           setSearchValue(starMetaData.display_name);
           setSearched(true);
           setRotate([-parseFloat(starMetaData.lon), -parseFloat(starMetaData.lat)]);
@@ -81,10 +73,8 @@ const Skymap = () => {
       fetch(`/api/document/${constMetaData.filename}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data.document.paragraph[0].text !== paragraphs.text) {
-            setParagraphs(data.document.paragraph[0]);
-            setMainParagraphs(data.document.paragraph.slice(1));
-          }
+          setParagraphs(data.document.paragraph[0]);
+          setMainParagraphs(data.document.paragraph.slice(1));
           setSearchValue(constMetaData.display_name);
           setSearched(true);
           setRotate([-parseFloat(constMetaData.lon), -parseFloat(constMetaData.lat)]);
@@ -92,39 +82,43 @@ const Skymap = () => {
     }
   }, [constMetaData]);
 
-  const handleClick = (e: Event) => {
-    e.stopPropagation();
-    // @ts-ignore
-    fetch(`/api/name/${e.target?.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.star) {
-          setSearched(true);
-          setIsStar(true);
-          setStarMetaData(data.star);
-          router.push(`/?type=star&index=${data.star.star_id}`);
-          window.scrollTo(0, 0);
-        } else if (data.const) {
-          setSearched(true);
-          setIsStar(false);
-          setConstMetaData(data.const);
-          router.push(`/?type=const&index=${data.const.const_id}`);
-          window.scrollTo(0, 0);
-        } else {
-          router.push(`/`);
-          setSearched(false);
-          setRotate([0, -90]);
-        }
-      });
-  };
-
   useEffect(() => {
-    if (paragraphs.type !== '') {
+    const handleStarTagClick = (e: any) => {
+      e.stopPropagation();
+      console.log(e.target.id);
+      fetch(`/api/name/${e.target.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.star) {
+            if (data.star.star_id) {
+              setSearched(true);
+              setIsStar(true);
+              setStarMetaData(data.star);
+              router.push(`/?type=star&index=${data.star.star_id}`);
+            }
+          } else if (data.const) {
+            if (data.const.const_id) {
+              setSearched(true);
+              setIsStar(false);
+              setConstMetaData(data.const);
+              router.push(`/?type=const&index=${data.const.const_id}`);
+            }
+          } else {
+            router.push(`/`);
+            setSearched(false);
+            setRotate([0, -90]);
+          }
+        });
+    };
+    document.querySelectorAll('.star-tag').forEach((item) => {
+      item.addEventListener('click', handleStarTagClick);
+    });
+
+    return () => {
       document.querySelectorAll('.star-tag').forEach((item) => {
-        item.removeEventListener('click', handleClick);
-        item.addEventListener('click', handleClick);
+        item.removeEventListener('click', handleStarTagClick);
       });
-    }
+    };
   }, [mainParagraphs]);
 
   // D3.js
@@ -308,32 +302,28 @@ const Skymap = () => {
   }, [rotate]);
 
   useEffect(() => {
+    const handleStarNameClick = (e: any) => {
+      e.preventDefault();
+      router.push(`/?type=star&index=${e.target.id}`);
+    };
+    const handleConstNameClick = (e: any) => {
+      e.preventDefault();
+      router.push(`/?type=const&index=${e.target.id}`);
+    };
     document.querySelectorAll('.starText').forEach((item, i) => {
-      item.addEventListener('click', (e: Event) => {
-        e.preventDefault();
-        router.push(`/?type=star&index=${item.id}`);
-        fetch(`/api/star/${item.id}`)
-          .then((res) => res.json())
-          .then((data) => {
-            setSearched(true);
-            setIsStar(true);
-            setStarMetaData(data.star);
-          });
-      });
+      item.addEventListener('click', handleStarNameClick);
     });
     document.querySelectorAll('.constellation').forEach((item, i) => {
-      item.addEventListener('click', (e: Event) => {
-        e.preventDefault();
-        router.push(`/?type=const&index=${item.id}`);
-        fetch(`/api/const/${item.id}`)
-          .then((res) => res.json())
-          .then((data) => {
-            setSearched(true);
-            setIsStar(false);
-            setConstMetaData(data.const);
-          });
-      });
+      item.addEventListener('click', handleConstNameClick);
     });
+    return () => {
+      document.querySelectorAll('.starText').forEach((item, i) => {
+        item.removeEventListener('click', handleStarNameClick);
+      });
+      document.querySelectorAll('.constellation').forEach((item, i) => {
+        item.removeEventListener('click', handleConstNameClick);
+      });
+    };
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -365,20 +355,8 @@ const Skymap = () => {
     if (returnVal[0] === -1) return;
     else if (returnVal[1] === 'star') {
       router.push(`/?type=star&index=${returnVal[0]}`);
-      fetch(`/api/star/${returnVal[0]}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setIsStar(true);
-          setStarMetaData(data.star);
-        });
     } else if (returnVal[1] === 'const') {
       router.push(`/?type=const&index=${returnVal[0]}`);
-      fetch(`/api/const/${returnVal[0]}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setIsStar(false);
-          setConstMetaData(data.const);
-        });
     }
   };
 
@@ -388,18 +366,9 @@ const Skymap = () => {
     }
   };
 
-  const handleDailyStarClick = (event: React.MouseEvent) => {
+  const handleDailyStarClick = (event: any) => {
     event.preventDefault();
-    // @ts-ignore
     router.push(`/?type=star&index=${event.target?.id}`);
-    // @ts-ignore
-    fetch(`/api/star/${event.target?.id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setSearched(true);
-        setIsStar(true);
-        setStarMetaData(data.star);
-      });
   };
 
   return (
@@ -459,7 +428,7 @@ const Skymap = () => {
       </div>
 
       {/* Display Area: Star */}
-      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && isStar ? 'block' : 'hidden'}`} ref={starRef}>
+      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && isStar ? 'block' : 'hidden'}`}>
         <div className='px-5 mt-6'>
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
@@ -467,7 +436,6 @@ const Skymap = () => {
               星名
             </div>
           </div>
-
           <div className='mb-3 text-base flex'>{starMetaData.const_name}</div>
           <div className='flex'>
             <div className='mb-1 text-base flex flex-auto'>
@@ -493,7 +461,6 @@ const Skymap = () => {
             <div className='mb-2 text-lg font-bold'>步天歌</div>
             <div className='font-serif'>{parse(paragraphs?.text)}</div>
           </div>
-
           <div className='text-base leading-7'>
             {mainParagraphs.map((p, i) => {
               return (
@@ -508,7 +475,7 @@ const Skymap = () => {
       </div>
 
       {/* Display Area: Constellation */}
-      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'}`} ref={constRef}>
+      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'}`}>
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
           <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
@@ -520,7 +487,6 @@ const Skymap = () => {
             <div className='mb-2 text-lg font-bold'>步天歌</div>
             <div className='font-serif'>{parse(paragraphs?.text)}</div>
           </div>
-
           <div className='text-base leading-7'>
             {mainParagraphs.map((p, i) => {
               return (
