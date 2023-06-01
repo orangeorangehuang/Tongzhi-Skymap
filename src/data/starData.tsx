@@ -882,7 +882,7 @@ export const constData = [
   {
     "type": "Feature",
     "geometry": { "type": "Point", "coordinates": [-141.67, -22.41] },
-    "properties": { "id": "const-0176", "name": "燕", "display_name": "燕", "color": 1 }
+    "properties": { "id": "const-0176", "name": "燕星", "display_name": "燕", "color": 1 }
   },
   {
     "type": "Feature",
@@ -37927,7 +37927,7 @@ export const starData = [
     "geometry": { "type": "Point", "coordinates": [-89.76, -9.77] },
     "properties": {
       "id": "star-0298",
-      "name": "燕",
+      "name": "燕星",
       "display_name": "燕",
       "prop_name": "ν Oph",
       "color": "白",
@@ -42272,7 +42272,7 @@ export const starData = [
   {
     "type": "Feature",
     "geometry": { "type": "Point", "coordinates": [-141.67, -22.41] },
-    "properties": { "id": "star-0634", "name": "燕", "display_name": "", "prop_name": "ζ Cap", "color": "黃", "const_id": "燕", "const_name": "燕" }
+    "properties": { "id": "star-0634", "name": "燕", "display_name": "", "prop_name": "ζ Cap", "color": "黃", "const_id": "燕", "const_name": "燕星" }
   },
   {
     "type": "Feature",
