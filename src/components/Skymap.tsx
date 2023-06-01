@@ -33,8 +33,8 @@ const Skymap = () => {
   const [mainParagraphs, setMainParagraphs] = useState([{ type: '', text: '' }]);
 
   useEffect(() => {
-    let searchType = searchParams.get('type');
-    let searchIndex = searchParams.get('index');
+    let searchIndex = searchParams.get('display');
+    let searchType = searchIndex? searchIndex.split('-')[0] : null;
 
     if (searchType === 'star' && searchIndex) {
       setIsStar(true);
@@ -97,14 +97,14 @@ const Skymap = () => {
               setSearched(true);
               setIsStar(true);
               setStarMetaData(data.star);
-              router.push(`/?type=star&index=${data.star.star_id}`);
+              router.push(`/?display=${data.star.star_id}`);
             }
           } else if (data.const) {
             if (data.const.const_id) {
               setSearched(true);
               setIsStar(false);
               setConstMetaData(data.const);
-              router.push(`/?type=const&index=${data.const.const_id}`);
+              router.push(`/?display=${data.const.const_id}`);
             }
           } else {
             router.push(`/`);
@@ -307,11 +307,11 @@ const Skymap = () => {
   useEffect(() => {
     const handleStarNameClick = (e: any) => {
       e.preventDefault();
-      router.push(`/?type=star&index=${e.target.id}`);
+      router.push(`/?display=${e.target.id}`);
     };
     const handleConstNameClick = (e: any) => {
       e.preventDefault();
-      router.push(`/?type=const&index=${e.target.id}`);
+      router.push(`/?display=${e.target.id}`);
     };
     document.querySelectorAll('.starText').forEach((item, i) => {
       item.addEventListener('click', handleStarNameClick);
@@ -357,9 +357,9 @@ const Skymap = () => {
     const returnVal = getIdFromName();
     if (returnVal[0] === -1) return;
     else if (returnVal[1] === 'star') {
-      router.push(`/?type=star&index=${returnVal[0]}`);
+      router.push(`/?display=${returnVal[0]}`);
     } else if (returnVal[1] === 'const') {
-      router.push(`/?type=const&index=${returnVal[0]}`);
+      router.push(`/?display=${returnVal[0]}`);
     }
   };
 
@@ -371,7 +371,7 @@ const Skymap = () => {
 
   const handleDailyStarClick = (event: any) => {
     event.preventDefault();
-    router.push(`/?type=star&index=${event.target?.id}`);
+    router.push(`/?display=${event.target?.id}`);
   };
 
   return (
