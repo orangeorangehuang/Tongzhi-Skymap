@@ -430,7 +430,7 @@ const Skymap = () => {
         {/* Search Bar */}
         <div
           className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${
-            searching && (renderedStarOptions.length !== 0 || renderedConstOptions !== 0) ? 'border-b-4' : 'rounded-b-lg'
+            searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
           }`}
         >
           <input
