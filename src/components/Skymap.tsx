@@ -391,8 +391,9 @@ const Skymap = () => {
   const handleInputFocus = (e: any) => {
     e.preventDefault();
     if (e.target.value === '') {
-      setSearching(true);
+      setSearching(false);
     } else {
+      setSearching(true);
       updateOptions(e.target.value);
     }
   };
