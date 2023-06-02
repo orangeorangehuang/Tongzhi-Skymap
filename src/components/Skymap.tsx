@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import parse from 'html-react-parser';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
+import StarIcon from '@mui/icons-material/Star';
 
 import { starData, lineData, constData, milkyData, starOption, constOption, colorPalette, sizePalette } from '@/data/starData';
 
@@ -31,10 +32,13 @@ const Skymap = () => {
   const [constMetaData, setConstMetaData] = useState<any>({});
   const [paragraphs, setParagraphs] = useState({ type: '', text: '' });
   const [mainParagraphs, setMainParagraphs] = useState([{ type: '', text: '' }]);
+  const [searching, setSearching] = useState(false);
+  const [renderedStarOptions, setRenderedStarOptions] = useState<any>([]);
+  const [renderedConstOptions, setRenderedConstOptions] = useState<any>([]);
 
   useEffect(() => {
     let searchIndex = searchParams.get('display');
-    let searchType = searchIndex? searchIndex.split('-')[0] : null;
+    let searchType = searchIndex ? searchIndex.split('-')[0] : null;
 
     if (searchType === 'star' && searchIndex) {
       setIsStar(true);
@@ -65,6 +69,7 @@ const Skymap = () => {
           setParagraphs(data.document.paragraph[0]);
           setMainParagraphs(data.document.paragraph.slice(1));
           setSearchValue(starMetaData.display_name);
+          setSearching(false);
           setSearched(true);
           setRotate([-parseFloat(starMetaData.lon), -parseFloat(starMetaData.lat)]);
         });
@@ -79,6 +84,7 @@ const Skymap = () => {
           setParagraphs(data.document.paragraph[0]);
           setMainParagraphs(data.document.paragraph.slice(1));
           setSearchValue(constMetaData.display_name);
+          setSearching(false);
           setSearched(true);
           setRotate([-parseFloat(constMetaData.lon), -parseFloat(constMetaData.lat)]);
         });
@@ -88,7 +94,7 @@ const Skymap = () => {
   useEffect(() => {
     const handleStarTagClick = (e: any) => {
       e.stopPropagation();
-      console.log(e.target.id);
+      setSearching(false);
       fetch(`/api/name/${e.target.id}`)
         .then((res) => res.json())
         .then((data) => {
@@ -306,12 +312,7 @@ const Skymap = () => {
 
   useEffect(() => {
     fetch(`/api/stars`);
-
     const handleStarNameClick = (e: any) => {
-      e.preventDefault();
-      router.push(`/?display=${e.target.id}`);
-    };
-    const handleConstNameClick = (e: any) => {
       e.preventDefault();
       router.push(`/?display=${e.target.id}`);
     };
@@ -319,24 +320,37 @@ const Skymap = () => {
       item.addEventListener('click', handleStarNameClick);
     });
     document.querySelectorAll('.constellation').forEach((item, i) => {
-      item.addEventListener('click', handleConstNameClick);
+      item.addEventListener('click', handleStarNameClick);
     });
     return () => {
       document.querySelectorAll('.starText').forEach((item, i) => {
         item.removeEventListener('click', handleStarNameClick);
       });
       document.querySelectorAll('.constellation').forEach((item, i) => {
-        item.removeEventListener('click', handleConstNameClick);
+        item.removeEventListener('click', handleStarNameClick);
       });
     };
   }, []);
+
+  const updateOptions = (targetName: string) => {
+    let filteredStarOption = starOption.filter((option) => option.display_name.indexOf(targetName) > -1);
+      let filteredConstOption = constOption.filter((option) => option.display_name.indexOf(targetName) > -1);
+      setRenderedStarOptions(filteredStarOption);
+      setRenderedConstOptions(filteredConstOption);
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
     if (e.target.value === '') {
       router.push(`/`);
+      setRenderedStarOptions([]);
+      setRenderedConstOptions([]);
+      setSearching(false);
       setSearched(false);
       setRotate([0, -90]);
+    } else {
+      setSearching(true);
+      updateOptions(e.target.value);
     }
   };
 
@@ -360,20 +374,39 @@ const Skymap = () => {
     if (returnVal[0] === -1) return;
     else if (returnVal[1] === 'star') {
       router.push(`/?display=${returnVal[0]}`);
+      setSearching(false);
     } else if (returnVal[1] === 'const') {
       router.push(`/?display=${returnVal[0]}`);
+      setSearching(false);
     }
   };
 
   const handleInputKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       handleInputSubmit();
+      setSearching(false);
+    }
+  };
+
+  const handleInputFocus = (e: any) => {
+    e.preventDefault();
+    if (e.target.value === '') {
+      setSearching(true);
+    } else {
+      updateOptions(e.target.value);
     }
   };
 
   const handleDailyStarClick = (event: any) => {
     event.preventDefault();
     router.push(`/?display=${event.target?.id}`);
+  };
+
+  const handleStarOptionClick = (e: any) => {
+    e.preventDefault();
+    setSearching(false);
+    let dest = e.target.id.split('?')[1];
+    router.push(`/?display=${dest}`);
   };
 
   return (
@@ -394,7 +427,11 @@ const Skymap = () => {
 
       <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50'>
         {/* Search Bar */}
-        <div className='w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] mb-[1rem] text-base rounded-lg bg-white drop-shadow-lg'>
+        <div
+          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${
+            searching && renderedStarOptions.length !== 0 && renderedConstOptions !== 0 ? 'border-b-4' : 'rounded-b-lg'
+          }`}
+        >
           <input
             type='text'
             placeholder='搜尋星名或星官'
@@ -402,6 +439,8 @@ const Skymap = () => {
             className='focus:outline-0 w-[20rem]'
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
+            onFocus={handleInputFocus}
+            // onBlur={handleInputBlur}
           />
           <IconButton onClick={handleInputSubmit}>
             <SearchIcon />
@@ -409,9 +448,65 @@ const Skymap = () => {
         </div>
 
         {/* Search Options */}
+        <div className='z-30 w-[25rem] bg-white rounded-lg drop-shadow-lg max-h-[20rem]'>
+          {searching ? (
+            <>
+              {renderedStarOptions.map((item: any, index: number) => {
+                if (index < 3)
+                  return (
+                    <div
+                      key={index}
+                      id={`option?${item.id}`}
+                      onClick={handleStarOptionClick}
+                      className='z-20 w-[25rem] px-5 py-2 bg-white hover:bg-slate-100 hover:cursor-pointer last:pb-3 last:rounded-b-lg flex'
+                    >
+                      <div
+                        id={`optionTag?${item.id}`}
+                        className='w-[3rem] h-[1.5rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-900 rounded-lg text-sm text-center text-slate-100'
+                      >
+                        星名
+                      </div>
+                      <div id={`optionName?${item.id}`} className='ml-[1rem] text-base flex-1'>
+                        {item.display_name}
+                      </div>
+                      <div id={`optionField?${item.id}`} className='mr-[2rem] text-sm text-left flex-1 w-[5rem]'>
+                        位於 {item.field}
+                      </div>
+                    </div>
+                  );
+              })}
+              {renderedConstOptions.map((item: any, index: number) => {
+                if (index < 3)
+                  return (
+                    <div
+                      key={index}
+                      id={`option?${item.id}`}
+                      onClick={handleStarOptionClick}
+                      className='z-20 w-[25rem] px-5 py-2 bg-white hover:bg-slate-100 hover:cursor-pointer last:pb-3 last:rounded-b-lg flex'
+                    >
+                      <div
+                        id={`optionTag?${item.id}`}
+                        className='w-[3rem] h-[1.5rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-600 rounded-lg text-sm text-center text-slate-100'
+                      >
+                        星官
+                      </div>
+                      <div id={`optionName?${item.id}`} className='ml-[1rem] text-base flex-1'>
+                        {item.display_name}
+                      </div>
+                      <div id={`optionField?${item.id}`} className='mr-[2rem] text-sm text-left flex-1 w-[5rem]'>
+                        位於 {item.field}
+                      </div>
+                    </div>
+                  );
+              })}
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
 
         {/* Star of the Day */}
-        <div className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
+        <div className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
             <div className='flex-auto'>
@@ -437,7 +532,7 @@ const Skymap = () => {
         <div className='px-5 mt-6'>
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
-            <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
+            <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-900 rounded-lg text-sm text-center text-slate-100'>
               星名
             </div>
           </div>
@@ -483,7 +578,7 @@ const Skymap = () => {
       <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'}`}>
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
-          <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
+          <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-600 rounded-lg text-sm text-center text-slate-100'>
             星官
           </div>
         </div>
