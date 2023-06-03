@@ -26,6 +26,7 @@ const Skymap = () => {
   const [scale, setScale] = useState(1);
   const [searched, setSearched] = useState(false);
   const [isStar, setIsStar] = useState(false);
+  const [isBrowsing, setIsBrowsing] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [starMetaData, setStarMetaData] = useState<any>({});
   const [constMetaData, setConstMetaData] = useState<any>({});
@@ -134,6 +135,7 @@ const Skymap = () => {
 
   // D3.js
   let rotate_d3 = [0, -90];
+  let isBrowsing_d3 = false;
   useEffect(() => {
     let svg = select(svgRef.current);
     let projection = geoAitoff()
@@ -257,18 +259,25 @@ const Skymap = () => {
       .remove();
 
     const dragBehavior = drag<any, any>().on('drag', (event) => {
-      const { dx, dy } = event;
-      rotate_d3[0] += dx * 0.25;
-      rotate_d3[1] -= dy * 0.25;
-      setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
+      if (!getIsBrowsing()) {
+        const { dx, dy } = event;
+        console.log(`drag event dx, dy:{${dx},${dy}}`);
+        rotate_d3[0] += dx * 0.25;
+        rotate_d3[1] -= dy * 0.25;
+        console.log(rotate_d3);
+        setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
+      }
     });
 
     // Zoom Event
     const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
-      let scale_temp;
-      if (event.transform.k < 0.16) scale_temp = 0.16;
-      else scale_temp = event.transform.k;
-      setScale(scale_temp);
+      if (!getIsBrowsing()) {
+        console.log(`zoom event`);
+        let scale_temp;
+        if (event.transform.k < 0.16) scale_temp = 0.16;
+        else scale_temp = event.transform.k;
+        setScale(scale_temp);
+      }
     });
 
     svg.call(dragBehavior);
@@ -277,7 +286,7 @@ const Skymap = () => {
 
   const updateCord = () => {
     let svg = select(svgRef.current);
-    let scale_base = searched? 1800: 650;
+    let scale_base = searched ? 1800 : 650;
     let projection = geoAitoff()
       .scale(scale * scale_base)
       .rotate(rotate)
@@ -315,6 +324,30 @@ const Skymap = () => {
   };
 
   useEffect(() => {
+    if (isBrowsing) {
+      setTimeout(() => {
+        let dx = 1;
+        let dy = -1;
+        // browse_rotate_d3[0] += dx * 0.25;
+        // browse_rotate_d3[1] -= dy * 0.25;
+        console.log('move');
+        console.log(rotate);
+        setRotate([rotate[0] + dx * 0.75, rotate[1]]);
+        setScale(0.6);
+      }, 250)
+    }
+  })
+
+  useEffect(() => {
+    if (isBrowsing) {
+      // setRotate([rotate[0], -90]);
+      setScale(0.6);
+    }
+  }, [isBrowsing]);
+
+  useEffect(() => {
+    console.log(rotate);
+    console.log(scale);
     updateCord();
   }, [rotate, scale]);
 
@@ -422,6 +455,15 @@ const Skymap = () => {
     router.push(`/?display=${dest}`);
   };
 
+  const handleBrowsingOptionClick = (e: any) => {
+    setIsBrowsing(!isBrowsing);
+    isBrowsing_d3 = !isBrowsing_d3;
+  }
+
+  const getIsBrowsing = () => {
+    return isBrowsing_d3;
+  }
+
   return (
     <div className='relative w-screen h-screen'>
       <svg
@@ -441,9 +483,8 @@ const Skymap = () => {
       <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50'>
         {/* Search Bar */}
         <div
-          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${
-            searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
-          }`}
+          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
+            }`}
         >
           <input
             type='text'
@@ -453,7 +494,7 @@ const Skymap = () => {
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
             onFocus={handleInputFocus}
-            // onBlur={handleInputBlur}
+          // onBlur={handleInputBlur}
           />
           <IconButton onClick={handleInputSubmit}>
             <SearchIcon />
@@ -518,12 +559,22 @@ const Skymap = () => {
           )}
         </div>
 
+        {/* Browsing Toggle */}
+        <div className={`w-[25rem] h-[2.5rem] px-5 pt-[0.5rem] pb-[0.5rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
+          <div className='flex'>
+            <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
+            <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
+              <input type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />On
+            </label>
+          </div>
+        </div>
+
         {/* Star of the Day */}
-        <div className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
+        <div className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched || isBrowsing ? 'hidden' : 'block'}`}>
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
-            <div className='flex-auto'>
-              {month}/{date}
+            <div className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
+              {month}月{date}日
             </div>
           </div>
           <div className='flex text-sm'>
