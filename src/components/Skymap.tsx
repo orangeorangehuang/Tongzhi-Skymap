@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { drag, zoom, zoomIdentity, zoomTransform } from 'd3';
-import { select, selection } from 'd3-selection';
+import { drag, zoom } from 'd3';
+import { select } from 'd3-selection';
 import { geoPath, geoGraticule10 } from 'd3-geo';
 // @ts-ignore
 import { geoAitoff } from 'd3-geo-projection';
