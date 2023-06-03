@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation';
 import parse from 'html-react-parser';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
-import StarIcon from '@mui/icons-material/Star';
 
 import { starData, lineData, constData, milkyData, starOption, constOption, colorPalette, sizePalette } from '@/data/starData';
 
@@ -19,12 +18,12 @@ const Skymap = () => {
   const router = useRouter();
   const svgRef = useRef(null);
   const searchParams = useSearchParams();
-  const scale = 650;
   const month = (new Date().getMonth() + 1) % 12;
   const date = new Date().getDate();
   const today_id = (month * 30 + date) % starOption.length;
 
   const [rotate, setRotate] = useState([0, -90]);
+  const [scale, setScale] = useState(650);
   const [searched, setSearched] = useState(false);
   const [isStar, setIsStar] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -134,8 +133,8 @@ const Skymap = () => {
   useEffect(() => {
     let svg = select(svgRef.current);
     let projection = geoAitoff()
-      .scale(scale)
-      .rotate(rotate)
+      .scale(650)
+      .rotate([0, -90])
       .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
     let pathGenerator = geoPath(projection);
 
@@ -246,69 +245,70 @@ const Skymap = () => {
       .remove();
   }, []);
 
-  useEffect(() => {
-    let scale_temp = searched ? 1800 : 650;
+  const updateCord = () => {
     let svg = select(svgRef.current);
     let projection = geoAitoff()
-      .scale(scale_temp)
+      .scale(scale)
       .rotate(rotate)
       .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
-
-    // Update Coorinates
-    const updateCord = () => {
-      svg.selectAll('path').attr('d', (d: any) => {
-        return geoPath(projection)(d);
+    svg.selectAll('path').attr('d', (d: any) => {
+      return geoPath(projection)(d);
+    });
+    svg
+      .selectAll('circle')
+      .data(starData)
+      .attr('cx', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
+      })
+      .attr('cy', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
       });
-      svg
-        .selectAll('circle')
-        .data(starData)
-        .attr('cx', (d) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
-        })
-        .attr('cy', (d) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
-        });
-      svg
-        .selectAll('.starText')
-        .data(starData)
-        .attr('x', (d) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
-        })
-        .attr('y', (d) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
-        });
-      svg
-        .selectAll('.constellation')
-        .data(constData)
-        .attr('x', (d) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
-        })
-        .attr('y', (d) => {
-          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
-        });
-    };
+    svg
+      .selectAll('.starText')
+      .data(starData)
+      .attr('x', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
+      })
+      .attr('y', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
+      });
+    svg
+      .selectAll('.constellation')
+      .data(constData)
+      .attr('x', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
+      })
+      .attr('y', (d) => {
+        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
+      });
+  };
 
+  useEffect(() => {
+    updateCord();
+  }, [rotate, scale]);
+
+  let rotate_d3 = [0, -90];
+  useEffect(() => {
+    let svg = select(svgRef.current);
     // Drag Event
     const dragBehavior = drag<any, any>().on('drag', (event) => {
       const { dx, dy } = event;
-      rotate[0] += dx * 0.25;
-      rotate[1] -= dy * 0.25;
-      projection.rotate(rotate);
-      updateCord();
+      rotate_d3[0] +=  dx * 0.25;
+      rotate_d3[1] -=  dy * 0.25;
+      setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
     });
 
     // Zoom Event
     const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
-      if (scale_temp * event.transform.k < 300) projection.scale(300);
-      else projection.scale(scale_temp * event.transform.k);
-      updateCord();
+      let scale_temp = searched ? 1800 : 650;
+      if (scale_temp * event.transform.k < 300) scale_temp = 300;
+      else scale_temp = scale_temp * event.transform.k;
+      setScale(scale_temp);
     });
 
     svg.call(dragBehavior);
     svg.call(zoomBehavior);
-
-    updateCord();
-  }, [rotate]);
+  }, []);
 
   useEffect(() => {
     fetch(`/api/stars`);
