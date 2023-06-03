@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { drag, zoom } from 'd3';
-import { select } from 'd3-selection';
+import { drag, zoom, zoomIdentity, zoomTransform } from 'd3';
+import { select, selection } from 'd3-selection';
 import { geoPath, geoGraticule10 } from 'd3-geo';
 // @ts-ignore
 import { geoAitoff } from 'd3-geo-projection';
@@ -23,7 +23,7 @@ const Skymap = () => {
   const today_id = (month * 30 + date) % starOption.length;
 
   const [rotate, setRotate] = useState([0, -90]);
-  const [scale, setScale] = useState(650);
+  const [scale, setScale] = useState(1);
   const [searched, setSearched] = useState(false);
   const [isStar, setIsStar] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -71,6 +71,7 @@ const Skymap = () => {
           setSearching(false);
           setSearched(true);
           setRotate([-parseFloat(starMetaData.lon), -parseFloat(starMetaData.lat)]);
+          setScale(1);
         });
     }
   }, [starMetaData]);
@@ -86,6 +87,7 @@ const Skymap = () => {
           setSearching(false);
           setSearched(true);
           setRotate([-parseFloat(constMetaData.lon), -parseFloat(constMetaData.lat)]);
+          setScale(1);
         });
     }
   }, [constMetaData]);
@@ -115,6 +117,7 @@ const Skymap = () => {
             router.push(`/`);
             setSearched(false);
             setRotate([0, -90]);
+            setScale(1);
           }
         });
     };
@@ -130,6 +133,7 @@ const Skymap = () => {
   }, [mainParagraphs]);
 
   // D3.js
+  let rotate_d3 = [0, -90];
   useEffect(() => {
     let svg = select(svgRef.current);
     let projection = geoAitoff()
@@ -147,8 +151,16 @@ const Skymap = () => {
     svg.append('use').attr('class', 'stroke').attr('xlink:href', '#sphere');
     svg.append('path').datum(geoGraticule10()).attr('class', 'stroke').attr('d', pathGenerator).exit().remove();
 
-    // @ts-ignore
-    svg.selectAll('.milkyWay').data(milkyData).enter().append('path').attr('d', pathGenerator).attr('class', 'milkyWay').exit().remove();
+    svg
+      .selectAll('.milkyWay')
+      .data(milkyData)
+      .enter()
+      .append('path')
+      // @ts-ignore
+      .attr('d', pathGenerator)
+      .attr('class', 'milkyWay')
+      .exit()
+      .remove();
     // @ts-ignore
     svg
       .selectAll('.starline')
@@ -243,12 +255,31 @@ const Skymap = () => {
       .attr('class', 'constellation')
       .exit()
       .remove();
+
+    const dragBehavior = drag<any, any>().on('drag', (event) => {
+      const { dx, dy } = event;
+      rotate_d3[0] += dx * 0.25;
+      rotate_d3[1] -= dy * 0.25;
+      setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
+    });
+
+    // Zoom Event
+    const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
+      let scale_temp;
+      if (event.transform.k < 0.16) scale_temp = 0.16;
+      else scale_temp = event.transform.k;
+      setScale(scale_temp);
+    });
+
+    svg.call(dragBehavior);
+    svg.call(zoomBehavior);
   }, []);
 
   const updateCord = () => {
     let svg = select(svgRef.current);
+    let scale_base = searched? 1800: 650;
     let projection = geoAitoff()
-      .scale(scale)
+      .scale(scale * scale_base)
       .rotate(rotate)
       .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
     svg.selectAll('path').attr('d', (d: any) => {
@@ -287,31 +318,11 @@ const Skymap = () => {
     updateCord();
   }, [rotate, scale]);
 
-  let rotate_d3 = [0, -90];
   useEffect(() => {
-    let svg = select(svgRef.current);
-    // Drag Event
-    const dragBehavior = drag<any, any>().on('drag', (event) => {
-      const { dx, dy } = event;
-      rotate_d3[0] +=  dx * 0.25;
-      rotate_d3[1] -=  dy * 0.25;
-      setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
-    });
+    fetch(`/api/star/star-0001`);
+    fetch(`/api/const/const-0001`);
+    fetch(`/api/document/tongzhi_038_001`);
 
-    // Zoom Event
-    const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
-      let scale_temp = searched ? 1800 : 650;
-      if (scale_temp * event.transform.k < 300) scale_temp = 300;
-      else scale_temp = scale_temp * event.transform.k;
-      setScale(scale_temp);
-    });
-
-    svg.call(dragBehavior);
-    svg.call(zoomBehavior);
-  }, []);
-
-  useEffect(() => {
-    fetch(`/api/stars`);
     const handleStarNameClick = (e: any) => {
       e.preventDefault();
       router.push(`/?display=${e.target.id}`);
@@ -334,10 +345,10 @@ const Skymap = () => {
 
   const updateOptions = (targetName: string) => {
     let filteredStarOption = starOption.filter((option) => option.display_name.indexOf(targetName) > -1);
-      let filteredConstOption = constOption.filter((option) => option.display_name.indexOf(targetName) > -1);
-      setRenderedStarOptions(filteredStarOption);
-      setRenderedConstOptions(filteredConstOption);
-  }
+    let filteredConstOption = constOption.filter((option) => option.display_name.indexOf(targetName) > -1);
+    setRenderedStarOptions(filteredStarOption);
+    setRenderedConstOptions(filteredConstOption);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -348,6 +359,7 @@ const Skymap = () => {
       setSearching(false);
       setSearched(false);
       setRotate([0, -90]);
+      setScale(1);
     } else {
       setSearching(true);
       updateOptions(e.target.value);
