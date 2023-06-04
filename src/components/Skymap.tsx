@@ -135,7 +135,22 @@ const Skymap = () => {
 
   // D3.js
   let rotate_d3 = [0, -90];
-  let isBrowsing_d3 = false;
+  const dragBehavior = drag<any, any>().on('drag', (event) => {
+    const { dx, dy } = event;
+    rotate_d3[0] += dx * 0.25;
+    rotate_d3[1] -= dy * 0.25;
+    setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
+  });
+  const dragNoBehavior = drag<any, any>().on('drag', () => {});
+
+  const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
+    let scale_temp;
+    if (event.transform.k < 0.16) scale_temp = 0.16;
+    else scale_temp = event.transform.k;
+    setScale(scale_temp);
+  });
+  const zoomNoBehavior = zoom<any, any>().on('zoom', () => {});
+
   useEffect(() => {
     let svg = select(svgRef.current);
     let projection = geoAitoff()
@@ -258,28 +273,6 @@ const Skymap = () => {
       .exit()
       .remove();
 
-    const dragBehavior = drag<any, any>().on('drag', (event) => {
-      if (!getIsBrowsing()) {
-        const { dx, dy } = event;
-        console.log(`drag event dx, dy:{${dx},${dy}}`);
-        rotate_d3[0] += dx * 0.25;
-        rotate_d3[1] -= dy * 0.25;
-        console.log(rotate_d3);
-        setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
-      }
-    });
-
-    // Zoom Event
-    const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
-      if (!getIsBrowsing()) {
-        console.log(`zoom event`);
-        let scale_temp;
-        if (event.transform.k < 0.16) scale_temp = 0.16;
-        else scale_temp = event.transform.k;
-        setScale(scale_temp);
-      }
-    });
-
     svg.call(dragBehavior);
     svg.call(zoomBehavior);
   }, []);
@@ -326,9 +319,8 @@ const Skymap = () => {
   useEffect(() => {
     if (isBrowsing) {
       setTimeout(() => {
-        let dx = 1;
-        setRotate([rotate[0] + dx * 0.75, rotate[1]]);
         setScale(0.6);
+        setRotate([rotate[0] + 0.75, rotate[1]]);
       }, 100);
     }
   });
@@ -350,8 +342,11 @@ const Skymap = () => {
 
     const handleStarNameClick = (e: any) => {
       e.preventDefault();
-      router.push(`/?display=${e.target.id}`);
+      if (!isBrowsing) {
+        router.push(`/?display=${e.target.id}`);
+      }
     };
+
     document.querySelectorAll('.starText').forEach((item, i) => {
       item.addEventListener('click', handleStarNameClick);
     });
@@ -366,7 +361,7 @@ const Skymap = () => {
         item.removeEventListener('click', handleStarNameClick);
       });
     };
-  }, []);
+  }, [isBrowsing]);
 
   const updateOptions = (targetName: string) => {
     let filteredStarOption = starOption.filter((option) => option.display_name.indexOf(targetName) > -1);
@@ -402,7 +397,6 @@ const Skymap = () => {
         return [constOption[i].id, 'const'];
       }
     }
-
     return [-1, 'not found'];
   };
 
@@ -448,12 +442,16 @@ const Skymap = () => {
   };
 
   const handleBrowsingOptionClick = (e: any) => {
-    setIsBrowsing(!isBrowsing);
-    isBrowsing_d3 = !isBrowsing_d3;
-  };
-
-  const getIsBrowsing = () => {
-    return isBrowsing_d3;
+    let svg = select(svgRef.current);
+    let browsing_temp = !isBrowsing;
+    setIsBrowsing(browsing_temp);
+    if (browsing_temp) {
+      svg.call(dragNoBehavior);
+      svg.call(zoomNoBehavior);
+    } else {
+      svg.call(dragBehavior);
+      svg.call(zoomBehavior);
+    }
   };
 
   return (
@@ -578,11 +576,7 @@ const Skymap = () => {
         </div>
 
         {/* Browsing Toggle */}
-        <div
-          className={`w-[25rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${
-            searched ? 'hidden' : 'block'
-          }`}
-        >
+        <div className={`w-[25rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
             <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
