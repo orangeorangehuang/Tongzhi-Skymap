@@ -327,27 +327,19 @@ const Skymap = () => {
     if (isBrowsing) {
       setTimeout(() => {
         let dx = 1;
-        let dy = -1;
-        // browse_rotate_d3[0] += dx * 0.25;
-        // browse_rotate_d3[1] -= dy * 0.25;
-        console.log('move');
-        console.log(rotate);
         setRotate([rotate[0] + dx * 0.75, rotate[1]]);
         setScale(0.6);
-      }, 250)
+      }, 100);
     }
-  })
+  });
 
   useEffect(() => {
     if (isBrowsing) {
-      // setRotate([rotate[0], -90]);
       setScale(0.6);
     }
   }, [isBrowsing]);
 
   useEffect(() => {
-    console.log(rotate);
-    console.log(scale);
     updateCord();
   }, [rotate, scale]);
 
@@ -458,11 +450,11 @@ const Skymap = () => {
   const handleBrowsingOptionClick = (e: any) => {
     setIsBrowsing(!isBrowsing);
     isBrowsing_d3 = !isBrowsing_d3;
-  }
+  };
 
   const getIsBrowsing = () => {
     return isBrowsing_d3;
-  }
+  };
 
   return (
     <div className='relative w-screen h-screen'>
@@ -483,8 +475,9 @@ const Skymap = () => {
       <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50'>
         {/* Search Bar */}
         <div
-          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
-            }`}
+          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${
+            searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
+          }`}
         >
           <input
             type='text'
@@ -494,7 +487,7 @@ const Skymap = () => {
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
             onFocus={handleInputFocus}
-          // onBlur={handleInputBlur}
+            // onBlur={handleInputBlur}
           />
           <IconButton onClick={handleInputSubmit}>
             <SearchIcon />
@@ -559,18 +552,12 @@ const Skymap = () => {
           )}
         </div>
 
-        {/* Browsing Toggle */}
-        <div className={`w-[25rem] h-[2.5rem] px-5 pt-[0.5rem] pb-[0.5rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
-          <div className='flex'>
-            <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
-            <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
-              <input type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />On
-            </label>
-          </div>
-        </div>
-
         {/* Star of the Day */}
-        <div className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched || isBrowsing ? 'hidden' : 'block'}`}>
+        <div
+          className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${
+            searched || isBrowsing ? 'hidden' : 'block'
+          }`}
+        >
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
             <div className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
@@ -588,6 +575,21 @@ const Skymap = () => {
             </div>
           </div>
           <div className='w-[20rem] mt-[0.5rem] ml-[0.5rem] text-sm text-slate-600'>位於 {starOption[today_id].field}</div>
+        </div>
+
+        {/* Browsing Toggle */}
+        <div
+          className={`w-[25rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${
+            searched ? 'hidden' : 'block'
+          }`}
+        >
+          <div className='flex'>
+            <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
+            <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
+              <input className='mr-1' type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />
+              On
+            </label>
+          </div>
         </div>
       </div>
 
