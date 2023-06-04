@@ -319,17 +319,10 @@ const Skymap = () => {
   useEffect(() => {
     if (isBrowsing) {
       setTimeout(() => {
-        setScale(0.6);
         setRotate([rotate[0] + 0.75, rotate[1]]);
       }, 100);
     }
   });
-
-  useEffect(() => {
-    if (isBrowsing) {
-      setScale(0.6);
-    }
-  }, [isBrowsing]);
 
   useEffect(() => {
     updateCord();
@@ -339,6 +332,12 @@ const Skymap = () => {
     fetch(`/api/star/star-0001`);
     fetch(`/api/const/const-0001`);
     fetch(`/api/document/tongzhi_038_001`);
+
+    if (isBrowsing) {
+      setScale(0.65);
+    } else {
+      setScale(1);
+    }
 
     const handleStarNameClick = (e: any) => {
       e.preventDefault();
