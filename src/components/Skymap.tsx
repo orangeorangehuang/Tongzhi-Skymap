@@ -579,7 +579,7 @@ const Skymap = () => {
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
             <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
-              <input className='mr-1' type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />
+              <input className='mr-1 cursor-pointer' type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />
               On
             </label>
           </div>
