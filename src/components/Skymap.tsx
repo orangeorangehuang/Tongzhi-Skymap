@@ -549,6 +549,17 @@ const Skymap = () => {
           )}
         </div>
 
+        {/* Browsing Toggle */}
+        <div className={`w-[25rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
+          <div className='flex'>
+            <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
+            <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
+              <input className='mr-1 cursor-pointer' type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />
+              On
+            </label>
+          </div>
+        </div>
+
         {/* Star of the Day */}
         <div
           className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${
@@ -574,16 +585,6 @@ const Skymap = () => {
           <div className='w-[20rem] mt-[0.5rem] ml-[0.5rem] text-sm text-slate-600'>位於 {starOption[today_id].field}</div>
         </div>
 
-        {/* Browsing Toggle */}
-        <div className={`w-[25rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
-          <div className='flex'>
-            <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
-            <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
-              <input className='mr-1 cursor-pointer' type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />
-              On
-            </label>
-          </div>
-        </div>
       </div>
 
       {/* Display Area: Star */}
@@ -595,7 +596,7 @@ const Skymap = () => {
               星名
             </div>
           </div>
-          <div className='mb-3 text-base flex'>{starMetaData.const_name}</div>
+          <div className='mb-3 text-base flex'>位於 {starMetaData.const_name}</div>
           <div className='flex'>
             <div className='mb-1 text-base flex flex-auto'>
               <div className='w-[3rem] py-[0.25rem] px-2 bg-slate-200 rounded-lg text-sm/[1.5rem] text-center'>別名</div>
