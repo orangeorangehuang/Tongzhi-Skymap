@@ -427,7 +427,6 @@ const Skymap = () => {
   const handleInputFocus = (e: any) => {
     e.preventDefault();
     if (!isBrowsing) {
-      console.log('not browse')
       if (e.target.value === '') {
         setSearching(false);
       } else {
