@@ -141,7 +141,7 @@ const Skymap = () => {
     rotate_d3[1] -= dy * 0.25;
     setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
   });
-  const dragNoBehavior = drag<any, any>().on('drag', () => {});
+  const dragNoBehavior = drag<any, any>().on('drag', () => { });
 
   const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
     let scale_temp;
@@ -149,7 +149,7 @@ const Skymap = () => {
     else scale_temp = event.transform.k;
     setScale(scale_temp);
   });
-  const zoomNoBehavior = zoom<any, any>().on('zoom', () => {});
+  const zoomNoBehavior = zoom<any, any>().on('zoom', () => { });
 
   useEffect(() => {
     let svg = select(svgRef.current);
@@ -370,22 +370,26 @@ const Skymap = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-    if (e.target.value === '') {
-      router.push(`/`);
-      setRenderedStarOptions([]);
-      setRenderedConstOptions([]);
-      setSearching(false);
-      setSearched(false);
-      setRotate([0, -90]);
-      setScale(1);
-    } else {
-      setSearching(true);
-      updateOptions(e.target.value);
+    if (!isBrowsing) {
+      setSearchValue(e.target.value);
+      if (e.target.value === '') {
+        router.push(`/`);
+        setRenderedStarOptions([]);
+        setRenderedConstOptions([]);
+        setSearching(false);
+        setSearched(false);
+        setRotate([0, -90]);
+        setScale(1);
+      } else {
+        setSearching(true);
+        updateOptions(e.target.value);
+      }
     }
   };
 
   const getIdFromName = () => {
+    if (searchValue === '')
+      return [-1, 'not found'];
     for (let i = 0; i < starOption.length; i++) {
       if (String(starOption[i].display_name).indexOf(String(searchValue)) > -1) {
         return [starOption[i].id, 'star'];
@@ -400,6 +404,8 @@ const Skymap = () => {
   };
 
   const handleInputSubmit = () => {
+    if (isBrowsing)
+      return;
     const returnVal = getIdFromName();
     if (returnVal[0] === -1) return;
     else if (returnVal[1] === 'star') {
@@ -420,11 +426,14 @@ const Skymap = () => {
 
   const handleInputFocus = (e: any) => {
     e.preventDefault();
-    if (e.target.value === '') {
-      setSearching(false);
-    } else {
-      setSearching(true);
-      updateOptions(e.target.value);
+    if (!isBrowsing) {
+      console.log('not browse')
+      if (e.target.value === '') {
+        setSearching(false);
+      } else {
+        setSearching(true);
+        updateOptions(e.target.value);
+      }
     }
   };
 
@@ -444,6 +453,7 @@ const Skymap = () => {
     let svg = select(svgRef.current);
     let browsing_temp = !isBrowsing;
     setIsBrowsing(browsing_temp);
+    setSearching(false);
     if (browsing_temp) {
       svg.call(dragNoBehavior);
       svg.call(zoomNoBehavior);
@@ -472,9 +482,8 @@ const Skymap = () => {
       <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50'>
         {/* Search Bar */}
         <div
-          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${
-            searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
-          }`}
+          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
+            }`}
         >
           <input
             type='text'
@@ -484,7 +493,8 @@ const Skymap = () => {
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
             onFocus={handleInputFocus}
-            // onBlur={handleInputBlur}
+            onMouseDown={e => { if (isBrowsing) e.preventDefault() }}
+          // onBlur={handleInputBlur}
           />
           <IconButton onClick={handleInputSubmit}>
             <SearchIcon />
@@ -562,9 +572,8 @@ const Skymap = () => {
 
         {/* Star of the Day */}
         <div
-          className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${
-            searched || isBrowsing ? 'hidden' : 'block'
-          }`}
+          className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched || isBrowsing ? 'hidden' : 'block'
+            }`}
         >
           <div className='flex'>
             <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
