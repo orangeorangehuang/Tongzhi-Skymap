@@ -575,8 +575,8 @@ const Skymap = () => {
             }`}
         >
           <div className='flex'>
-            <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
-            <div className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
+            <div className='flex-auto w-[15rem] font-bold'>Star of the Day</div>
+            <div className='flex-auto w-[5rem] mr-[0.5rem] pl-[1rem] text-right'>
               {month}月{date}日
             </div>
           </div>
