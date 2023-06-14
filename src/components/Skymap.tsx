@@ -476,9 +476,9 @@ const Skymap = () => {
         }}
       ></svg>
 
-      <div className={`absolute top-0 left-0 w-[27.5rem] h-[100vh] bg-white ${searched ? 'block' : 'hidden'} max-sm:hidden` }></div>
+      <div className={`absolute top-0 left-0 w-[27.5rem] h-[100vh] bg-white ${searched ? 'block' : 'hidden'} max-md:hidden` }></div>
 
-      <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50 max-sm:hidden'>
+      <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50 max-md:hidden'>
         {/* Search Bar */}
         <div
           className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
@@ -596,7 +596,7 @@ const Skymap = () => {
       </div>
 
       {/* Display Area: Star */}
-      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && isStar ? 'block' : 'hidden'} max-sm:hidden`}>
+      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && isStar ? 'block' : 'hidden'} max-md:hidden`}>
         <div className='px-5 mt-6'>
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
@@ -643,7 +643,7 @@ const Skymap = () => {
       </div>
 
       {/* Display Area: Constellation */}
-      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'} max-sm:hidden`}>
+      <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'} max-md:hidden`}>
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
           <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-600 rounded-lg text-sm text-center text-slate-100'>
