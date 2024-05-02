@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { drag, zoom } from 'd3';
+import { drag, zoom, scaleLinear } from 'd3';
 import { select } from 'd3-selection';
 import { geoPath, geoGraticule10 } from 'd3-geo';
 // @ts-ignore
@@ -18,27 +18,23 @@ const Skymap = () => {
   const router = useRouter();
   const svgRef = useRef(null);
   const searchParams = useSearchParams();
+  const scale = 650;
   const month = (new Date().getMonth() + 1) % 12;
   const date = new Date().getDate();
   const today_id = (month * 30 + date) % starOption.length;
 
   const [rotate, setRotate] = useState([0, -90]);
-  const [scale, setScale] = useState(1);
   const [searched, setSearched] = useState(false);
   const [isStar, setIsStar] = useState(false);
-  const [isBrowsing, setIsBrowsing] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [starMetaData, setStarMetaData] = useState<any>({});
   const [constMetaData, setConstMetaData] = useState<any>({});
   const [paragraphs, setParagraphs] = useState({ type: '', text: '' });
   const [mainParagraphs, setMainParagraphs] = useState([{ type: '', text: '' }]);
-  const [searching, setSearching] = useState(false);
-  const [renderedStarOptions, setRenderedStarOptions] = useState<any>([]);
-  const [renderedConstOptions, setRenderedConstOptions] = useState<any>([]);
 
   useEffect(() => {
     let searchIndex = searchParams.get('display');
-    let searchType = searchIndex ? searchIndex.split('-')[0] : null;
+    let searchType = searchIndex? searchIndex.split('-')[0] : null;
 
     if (searchType === 'star' && searchIndex) {
       setIsStar(true);
@@ -69,10 +65,8 @@ const Skymap = () => {
           setParagraphs(data.document.paragraph[0]);
           setMainParagraphs(data.document.paragraph.slice(1));
           setSearchValue(starMetaData.display_name);
-          setSearching(false);
           setSearched(true);
           setRotate([-parseFloat(starMetaData.lon), -parseFloat(starMetaData.lat)]);
-          setScale(1);
         });
     }
   }, [starMetaData]);
@@ -85,10 +79,8 @@ const Skymap = () => {
           setParagraphs(data.document.paragraph[0]);
           setMainParagraphs(data.document.paragraph.slice(1));
           setSearchValue(constMetaData.display_name);
-          setSearching(false);
           setSearched(true);
           setRotate([-parseFloat(constMetaData.lon), -parseFloat(constMetaData.lat)]);
-          setScale(1);
         });
     }
   }, [constMetaData]);
@@ -96,7 +88,7 @@ const Skymap = () => {
   useEffect(() => {
     const handleStarTagClick = (e: any) => {
       e.stopPropagation();
-      setSearching(false);
+      console.log(e.target.id);
       fetch(`/api/name/${e.target.id}`)
         .then((res) => res.json())
         .then((data) => {
@@ -118,7 +110,6 @@ const Skymap = () => {
             router.push(`/`);
             setSearched(false);
             setRotate([0, -90]);
-            setScale(1);
           }
         });
     };
@@ -133,29 +124,20 @@ const Skymap = () => {
     };
   }, [mainParagraphs]);
 
+  var λ = scaleLinear()
+    .domain([-window.innerWidth, window.innerWidth])
+    .range([-180, 180])
+
+  var φ = scaleLinear()
+    .domain([-window.innerHeight, window.innerHeight])
+    .range([-90, 90]);
+
   // D3.js
-  let rotate_d3 = [0, -90];
-  const dragBehavior = drag<any, any>().on('drag', (event) => {
-    const { dx, dy } = event;
-    rotate_d3[0] += dx * 0.25;
-    rotate_d3[1] -= dy * 0.25;
-    setRotate([rotate_d3[0] + dx * 0.25, rotate_d3[1] - dy * 0.25]);
-  });
-  const dragNoBehavior = drag<any, any>().on('drag', () => { });
-
-  const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
-    let scale_temp;
-    if (event.transform.k < 0.16) scale_temp = 0.16;
-    else scale_temp = event.transform.k;
-    setScale(scale_temp);
-  });
-  const zoomNoBehavior = zoom<any, any>().on('zoom', () => { });
-
   useEffect(() => {
     let svg = select(svgRef.current);
     let projection = geoAitoff()
-      .scale(650)
-      .rotate([0, -90])
+      .scale(scale)
+      .rotate(rotate)
       .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
     let pathGenerator = geoPath(projection);
 
@@ -168,16 +150,8 @@ const Skymap = () => {
     svg.append('use').attr('class', 'stroke').attr('xlink:href', '#sphere');
     svg.append('path').datum(geoGraticule10()).attr('class', 'stroke').attr('d', pathGenerator).exit().remove();
 
-    svg
-      .selectAll('.milkyWay')
-      .data(milkyData)
-      .enter()
-      .append('path')
-      // @ts-ignore
-      .attr('d', pathGenerator)
-      .attr('class', 'milkyWay')
-      .exit()
-      .remove();
+    // @ts-ignore
+    svg.selectAll('.milkyWay').data(milkyData).enter().append('path').attr('d', pathGenerator).attr('class', 'milkyWay').exit().remove();
     // @ts-ignore
     svg
       .selectAll('.starline')
@@ -272,124 +246,119 @@ const Skymap = () => {
       .attr('class', 'constellation')
       .exit()
       .remove();
+  }, []);
+
+  useEffect(() => {
+    let scale_temp = searched ? 1800 : 650;
+    let svg = select(svgRef.current);
+    let projection = geoAitoff()
+      .scale(scale_temp)
+      .rotate(rotate)
+      .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
+
+    // Update Coorinates
+    const updateCord = () => {
+      svg.selectAll('path').attr('d', (d: any) => {
+        return geoPath(projection)(d);
+      });
+      svg
+        .selectAll('circle')
+        .data(starData)
+        .attr('cx', (d) => {
+          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
+        })
+        .attr('cy', (d) => {
+          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
+        });
+      svg
+        .selectAll('.starText')
+        .data(starData)
+        .attr('x', (d) => {
+          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
+        })
+        .attr('y', (d) => {
+          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
+        });
+      svg
+        .selectAll('.constellation')
+        .data(constData)
+        .attr('x', (d) => {
+          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
+        })
+        .attr('y', (d) => {
+          return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
+        });
+    };
+
+    // Drag Event
+    const dragBehavior = drag<any, any>().on('drag', (event) => {
+      // const { dx, dy } = event;
+      var r = {
+        x: λ((event.dx)),
+        y: φ((event.dy))
+      };
+      rotate[0] += r.x
+      rotate[1] -= r.y
+
+      // projection.rotate([rotate[0] + r.x, rotate[1] + r.y]);
+      // updatePaths(svg, graticule, geoPath);
+
+      // rotate[0] += dx * 0.25;
+      // rotate[1] -= dy * 0.25;
+      projection.rotate(rotate);
+      updateCord();
+    });
+
+    // Zoom Event
+    const zoomBehavior = zoom<any, any>().on('zoom', (event) => {
+      if (scale_temp * event.transform.k < 300) projection.scale(300);
+      else projection.scale(scale_temp * event.transform.k);
+      updateCord();
+    });
 
     svg.call(dragBehavior);
     svg.call(zoomBehavior);
-  }, []);
 
-  const updateCord = () => {
-    let svg = select(svgRef.current);
-    let scale_base = searched ? 1800 : 650;
-    let projection = geoAitoff()
-      .scale(scale * scale_base)
-      .rotate(rotate)
-      .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
-    svg.selectAll('path').attr('d', (d: any) => {
-      return geoPath(projection)(d);
-    });
-    svg
-      .selectAll('circle')
-      .data(starData)
-      .attr('cx', (d) => {
-        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0];
-      })
-      .attr('cy', (d) => {
-        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1];
-      });
-    svg
-      .selectAll('.starText')
-      .data(starData)
-      .attr('x', (d) => {
-        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 10;
-      })
-      .attr('y', (d) => {
-        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
-      });
-    svg
-      .selectAll('.constellation')
-      .data(constData)
-      .attr('x', (d) => {
-        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[0] - 15;
-      })
-      .attr('y', (d) => {
-        return projection([+d.geometry.coordinates[0], +d.geometry.coordinates[1]])[1] - 5;
-      });
-  };
-
-  useEffect(() => {
-    if (isBrowsing) {
-      setTimeout(() => {
-        setRotate([rotate[0] + 0.75, rotate[1]]);
-      }, 100);
-    }
-  });
-
-  useEffect(() => {
     updateCord();
-  }, [rotate, scale]);
+  }, [rotate]);
 
   useEffect(() => {
-    fetch(`/api/star/star-0001`);
-    fetch(`/api/const/const-0001`);
-    fetch(`/api/document/tongzhi_038_001`);
-
-    if (isBrowsing) {
-      setScale(0.65);
-    } else {
-      setScale(1);
-    }
+    fetch(`/api/stars`);
 
     const handleStarNameClick = (e: any) => {
       e.preventDefault();
-      if (!isBrowsing) {
-        router.push(`/?display=${e.target.id}`);
-      }
+      router.push(`/?display=${e.target.id}`);
     };
-
+    const handleConstNameClick = (e: any) => {
+      e.preventDefault();
+      router.push(`/?display=${e.target.id}`);
+    };
     document.querySelectorAll('.starText').forEach((item, i) => {
       item.addEventListener('click', handleStarNameClick);
     });
     document.querySelectorAll('.constellation').forEach((item, i) => {
-      item.addEventListener('click', handleStarNameClick);
+      item.addEventListener('click', handleConstNameClick);
     });
     return () => {
       document.querySelectorAll('.starText').forEach((item, i) => {
         item.removeEventListener('click', handleStarNameClick);
       });
       document.querySelectorAll('.constellation').forEach((item, i) => {
-        item.removeEventListener('click', handleStarNameClick);
+        item.removeEventListener('click', handleConstNameClick);
       });
     };
-  }, [isBrowsing]);
-
-  const updateOptions = (targetName: string) => {
-    let filteredStarOption = starOption.filter((option) => option.display_name.indexOf(targetName) > -1);
-    let filteredConstOption = constOption.filter((option) => option.display_name.indexOf(targetName) > -1);
-    setRenderedStarOptions(filteredStarOption);
-    setRenderedConstOptions(filteredConstOption);
-  };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isBrowsing) {
-      setSearchValue(e.target.value);
-      if (e.target.value === '') {
-        router.push(`/`);
-        setRenderedStarOptions([]);
-        setRenderedConstOptions([]);
-        setSearching(false);
-        setSearched(false);
-        setRotate([0, -90]);
-        setScale(1);
-      } else {
-        setSearching(true);
-        updateOptions(e.target.value);
-      }
+    setSearchValue(e.target.value);
+    if (e.target.value === '') {
+      router.push(`/`);
+      setSearched(false);
+      setRotate([0, -90]);
     }
   };
 
   const getIdFromName = () => {
-    if (searchValue === '')
-      return [-1, 'not found'];
     for (let i = 0; i < starOption.length; i++) {
       if (String(starOption[i].display_name).indexOf(String(searchValue)) > -1) {
         return [starOption[i].id, 'star'];
@@ -400,66 +369,29 @@ const Skymap = () => {
         return [constOption[i].id, 'const'];
       }
     }
+
     return [-1, 'not found'];
   };
 
   const handleInputSubmit = () => {
-    if (isBrowsing)
-      return;
     const returnVal = getIdFromName();
     if (returnVal[0] === -1) return;
     else if (returnVal[1] === 'star') {
       router.push(`/?display=${returnVal[0]}`);
-      setSearching(false);
     } else if (returnVal[1] === 'const') {
       router.push(`/?display=${returnVal[0]}`);
-      setSearching(false);
     }
   };
 
   const handleInputKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       handleInputSubmit();
-      setSearching(false);
-    }
-  };
-
-  const handleInputFocus = (e: any) => {
-    e.preventDefault();
-    if (!isBrowsing) {
-      if (e.target.value === '') {
-        setSearching(false);
-      } else {
-        setSearching(true);
-        updateOptions(e.target.value);
-      }
     }
   };
 
   const handleDailyStarClick = (event: any) => {
     event.preventDefault();
     router.push(`/?display=${event.target?.id}`);
-  };
-
-  const handleStarOptionClick = (e: any) => {
-    e.preventDefault();
-    setSearching(false);
-    let dest = e.target.id.split('?')[1];
-    router.push(`/?display=${dest}`);
-  };
-
-  const handleBrowsingOptionClick = (e: any) => {
-    let svg = select(svgRef.current);
-    let browsing_temp = !isBrowsing;
-    setIsBrowsing(browsing_temp);
-    setSearching(false);
-    if (browsing_temp) {
-      svg.call(dragNoBehavior);
-      svg.call(zoomNoBehavior);
-    } else {
-      svg.call(dragBehavior);
-      svg.call(zoomBehavior);
-    }
   };
 
   return (
@@ -476,14 +408,11 @@ const Skymap = () => {
         }}
       ></svg>
 
-      <div className={`absolute top-0 left-0 w-[27.5rem] h-[100vh] bg-white ${searched ? 'block' : 'hidden'} max-md:hidden` }></div>
+      <div className={`absolute top-0 left-0 w-[27.5rem] h-[100vh] bg-white ${searched ? 'block' : 'hidden'} max-md:hidden`}></div>
 
       <div className='absolute top-5 left-5 w-[26rem] mb-[0.5rem] z-50 max-md:hidden'>
         {/* Search Bar */}
-        <div
-          className={`z-40 w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] text-base rounded-t-lg bg-white drop-shadow-lg ${searching && (renderedStarOptions.length !== 0 || renderedConstOptions.length !== 0) ? 'border-b-4' : 'rounded-b-lg'
-            }`}
-        >
+        <div className='w-[25rem] px-5 pt-[0.4rem] pb-[0.1rem] mb-[1rem] text-base rounded-lg bg-white drop-shadow-lg'>
           <input
             type='text'
             placeholder='搜尋星名或星官'
@@ -491,9 +420,6 @@ const Skymap = () => {
             className='focus:outline-0 w-[20rem]'
             onChange={handleInputChange}
             onKeyDown={handleInputKeyDown}
-            onFocus={handleInputFocus}
-            onMouseDown={e => { if (isBrowsing) e.preventDefault() }}
-          // onBlur={handleInputBlur}
           />
           <IconButton onClick={handleInputSubmit}>
             <SearchIcon />
@@ -501,83 +427,13 @@ const Skymap = () => {
         </div>
 
         {/* Search Options */}
-        <div className='z-30 w-[25rem] bg-white rounded-lg drop-shadow-lg max-h-[20rem]'>
-          {searching ? (
-            <>
-              {renderedStarOptions.map((item: any, index: number) => {
-                if (index < 3)
-                  return (
-                    <div
-                      key={index}
-                      id={`option?${item.id}`}
-                      onClick={handleStarOptionClick}
-                      className='z-20 w-[25rem] px-5 py-2 bg-white hover:bg-slate-100 hover:cursor-pointer last:pb-3 last:rounded-b-lg flex'
-                    >
-                      <div
-                        id={`optionTag?${item.id}`}
-                        className='w-[3rem] h-[1.5rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-900 rounded-lg text-sm text-center text-slate-100'
-                      >
-                        星名
-                      </div>
-                      <div id={`optionName?${item.id}`} className='ml-[1rem] text-base flex-1'>
-                        {item.display_name}
-                      </div>
-                      <div id={`optionField?${item.id}`} className='mr-[2rem] text-sm text-left flex-1 w-[5rem]'>
-                        位於 {item.field}
-                      </div>
-                    </div>
-                  );
-              })}
-              {renderedConstOptions.map((item: any, index: number) => {
-                if (index < 3)
-                  return (
-                    <div
-                      key={index}
-                      id={`option?${item.id}`}
-                      onClick={handleStarOptionClick}
-                      className='z-20 w-[25rem] px-5 py-2 bg-white hover:bg-slate-100 hover:cursor-pointer last:pb-3 last:rounded-b-lg flex'
-                    >
-                      <div
-                        id={`optionTag?${item.id}`}
-                        className='w-[3rem] h-[1.5rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-600 rounded-lg text-sm text-center text-slate-100'
-                      >
-                        星官
-                      </div>
-                      <div id={`optionName?${item.id}`} className='ml-[1rem] text-base flex-1'>
-                        {item.display_name}
-                      </div>
-                      <div id={`optionField?${item.id}`} className='mr-[2rem] text-sm text-left flex-1 w-[5rem]'>
-                        位於 {item.field}
-                      </div>
-                    </div>
-                  );
-              })}
-            </>
-          ) : (
-            <></>
-          )}
-        </div>
-
-        {/* Browsing Toggle */}
-        <div className={`w-[25rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
-          <div className='flex'>
-            <div className='flex-auto w-[20rem] font-bold'>Browsing Mode</div>
-            <label className='flex-auto w-[5rem] ml-[0.5rem] pl-[1rem]'>
-              <input className='mr-1 cursor-pointer' type='checkbox' checked={isBrowsing} onChange={handleBrowsingOptionClick} />
-              On
-            </label>
-          </div>
-        </div>
 
         {/* Star of the Day */}
-        <div
-          className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] mt-[1rem] text-base rounded-lg bg-white ${searched || isBrowsing ? 'hidden' : 'block'
-            }`}
-        >
+        <div className={`w-[25rem] h-[8rem] px-5 pt-[1rem] pb-[1rem] text-base rounded-lg bg-white ${searched ? 'hidden' : 'block'}`}>
           <div className='flex'>
-            <div className='flex-auto w-[15rem] font-bold'>Star of the Day</div>
-            <div className='flex-auto w-[5rem] mr-[0.5rem] pl-[1rem] text-right'>
-              {month}月{date}日
+            <div className='flex-auto w-[20rem] font-bold'>Star of the Day</div>
+            <div className='flex-auto'>
+              {month}/{date}
             </div>
           </div>
           <div className='flex text-sm'>
@@ -592,7 +448,6 @@ const Skymap = () => {
           </div>
           <div className='w-[20rem] mt-[0.5rem] ml-[0.5rem] text-sm text-slate-600'>位於 {starOption[today_id].field}</div>
         </div>
-
       </div>
 
       {/* Display Area: Star */}
@@ -600,11 +455,11 @@ const Skymap = () => {
         <div className='px-5 mt-6'>
           <div className='flex'>
             <div className='text-2xl mb-2'>{starMetaData.display_name}</div>
-            <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-900 rounded-lg text-sm text-center text-slate-100'>
+            <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
               星名
             </div>
           </div>
-          <div className='mb-3 text-base flex'>位於 {starMetaData.const_name}</div>
+          <div className='mb-3 text-base flex'>{starMetaData.const_name}</div>
           <div className='flex'>
             <div className='mb-1 text-base flex flex-auto'>
               <div className='w-[3rem] py-[0.25rem] px-2 bg-slate-200 rounded-lg text-sm/[1.5rem] text-center'>別名</div>
@@ -646,7 +501,7 @@ const Skymap = () => {
       <div className={`absolute top-[4rem] left-4 w-[26rem] h-[90vh] overflow-y-scroll ${searched && !isStar ? 'block' : 'hidden'} max-md:hidden`}>
         <div className='px-5 mt-6 flex'>
           <div className='text-2xl'>{constMetaData.display_name}</div>
-          <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-600 rounded-lg text-sm text-center text-slate-100'>
+          <div className='w-[3rem] h-[1.5rem] mt-[0.3rem] ml-[1rem] py-[0.1rem] pl-1 pr-1 bg-slate-800 rounded-lg text-sm text-center text-slate-100'>
             星官
           </div>
         </div>
