@@ -138,7 +138,7 @@ const Skymap = () => {
     let projection = geoAitoff()
       .scale(scale)
       .rotate(rotate)
-      .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
+      .translate([window.innerWidth * 0.5, window.innerHeight * 0.5]);
     let pathGenerator = geoPath(projection);
 
     svg
@@ -254,7 +254,7 @@ const Skymap = () => {
     let projection = geoAitoff()
       .scale(scale_temp)
       .rotate(rotate)
-      .translate([window.innerWidth * 0.65, window.innerHeight * 0.5]);
+      .translate([window.innerWidth * 0.5, window.innerHeight * 0.5]);
 
     // Update Coorinates
     const updateCord = () => {
@@ -292,19 +292,12 @@ const Skymap = () => {
 
     // Drag Event
     const dragBehavior = drag<any, any>().on('drag', (event) => {
-      // const { dx, dy } = event;
       var r = {
         x: λ((event.dx)),
         y: φ((event.dy))
       };
       rotate[0] += r.x
       rotate[1] -= r.y
-
-      // projection.rotate([rotate[0] + r.x, rotate[1] + r.y]);
-      // updatePaths(svg, graticule, geoPath);
-
-      // rotate[0] += dx * 0.25;
-      // rotate[1] -= dy * 0.25;
       projection.rotate(rotate);
       updateCord();
     });
